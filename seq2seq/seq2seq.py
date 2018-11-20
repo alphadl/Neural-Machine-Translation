@@ -137,11 +137,10 @@ def preprocess(srcLang, tgtLang):
     return src_Lang, tgt_Lang, pairs
 
 
-print("-" * 50 + "starting pre-process" + "-" * 50)
+print("-" * 20 + "starting pre-process" + "-" * 20)
 
 src_lang, tgt_lang, pairs = preprocess('en', 'cn')
 # print(random.choice(pairs))
-
 
 """
 define encoder
@@ -155,16 +154,18 @@ class Encoder(nn.Module):
         self.i_size = input_size
 
         self.embedding = nn.Embedding(input_size, hidden_size)
-        self.gru = nn.GRU(hidden_size, hidden_size)
+        self.lstm = nn.LSTM(hidden_size, hidden_size)
 
     def forward(self, input, hidden):
         embedded = self.embedding(input).view(1, 1, -1)
         output = embedded
-        output, hidden = self.gru(output, hidden)
+        # print(hidden[0].size(),"+++",hidden[1].size())
+        output, hidden = self.lstm(output, hidden)
         return output, hidden
 
     def initHidden(self):
-        return torch.zeros(1, 1, self.h_size, device=device)
+        return (torch.zeros(1, 1, self.h_size, device=device), \
+                torch.zeros(1, 1, self.h_size, device=device))
 
 
 """
@@ -178,19 +179,20 @@ class Decoder(nn.Module):
         self.h_size = hidden_size
 
         self.embedding = nn.Embedding(output_size, hidden_size)
-        self.gru = nn.GRU(hidden_size, hidden_size)
+        self.lstm = nn.LSTM(hidden_size, hidden_size)
         self.out = nn.Linear(hidden_size, output_size)
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, input, hidden):
         output = self.embedding(input).view(1, 1, -1)
         output = F.relu(output)
-        output, hidden = self.gru(output, hidden)
+        output, hidden = self.lstm(output, hidden)
         output = self.softmax(self.out(output[0]))
         return output, hidden
 
     def initHidden(self):
-        return torch.zeros(1, 1, self.h_size, device=device)
+        return (torch.zeros(1, 1, self.h_size, device=device), \
+                torch.zeros(1, 1, self.h_size, device=device))
 
 
 """
@@ -229,14 +231,14 @@ def train(src_tensor, tgt_tensor, encoder, decoder, encoder_optimizer, decoder_o
     src_len = src_tensor.size(0)
     tgt_len = tgt_tensor.size(0)
 
-    # encoder_output = torch.zeros(max_length, encoder_hidden, device=device)
+    encoder_outputs = torch.zeros(max_length, encoder.h_size, device=device)
 
     loss = 0
 
     for ei in range(src_len):
         encoder_output, encoder_hidden = encoder(src_tensor[ei], encoder_hidden)
         # encoder_output[ei] = encoder_output[0, 0]
-        encoder_output[ei] = encoder_output[0, 0]
+        encoder_outputs[ei] = encoder_output[0, 0]
 
     decoder_input = torch.tensor([[SOS_token]], device=device)
 
@@ -297,7 +299,7 @@ Full process for training the model is :
 """
 
 
-def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, learning_rate=0.01):
+def trainIters(encoder, decoder, n_iters, print_every=100, plot_every=100, learning_rate=0.01):
     start = time.time()
     plot_losses = []
     print_loss_total = 0  # Reset every print_every
@@ -310,6 +312,7 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
     criterion = nn.NLLLoss()
 
     for iter in range(1, n_iters + 1):
+        print("processing %d / %d..." % (iter, n_iters))
         training_pair = training_pairs[iter - 1]
         input_tensor = training_pair[0]
         target_tensor = training_pair[1]
@@ -322,8 +325,8 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
         if iter % print_every == 0:
             print_loss_avg = print_loss_total / print_every
             print_loss_total = 0
-            print('%s (%d %d%%) %.4f' % (timeSince(start, iter / n_iters),
-                                         iter, iter / n_iters * 100, print_loss_avg))
+            print('%s (Now is:%d,Finished %d%%) //average loss:%.4f' % (timeSince(start, iter / n_iters),
+                                                                        iter, (iter / n_iters) * 100, print_loss_avg))
 
         if iter % plot_every == 0:
             plot_loss_avg = plot_loss_total / plot_every
@@ -352,9 +355,10 @@ def showPlot(points):
 """
 parameters for training
 """
-print("-" * 50 + "starting training" + "-" * 50)
+print("-" * 20 + "starting training" + "-" * 20)
 hidden_size = 256
+
 encoder1 = Encoder(src_lang.n_words, hidden_size).to(device)
 decoder1 = Decoder(hidden_size, tgt_lang.n_words).to(device)
 
-trainIters(encoder1, decoder1, 75000, print_every=100)
+trainIters(encoder1, decoder1, 750, print_every=10)
