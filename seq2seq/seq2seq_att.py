@@ -1,10 +1,10 @@
 # -*-coding:utf-8-*-
 # Author: alphadl
-# seq2seq.py 19/11/18 17:45
+# seq2seq_att.py 21/11/18 17:52
 from __future__ import unicode_literals, print_function, division
 
 """
-Translation with a vanilla Sequence to Sequence Network
+Translation with a Sequence to Sequence Network and Attention
 
 This implementation is heavily based on NMT tutorial of Pytorch
 """
@@ -25,6 +25,7 @@ from torch import optim
 import torch.nn.functional as F
 
 from logger import Logger
+
 logger = Logger("./runs")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -167,37 +168,49 @@ class Encoder(nn.Module):
         return output, hidden
 
     def initHidden(self):
-        #return (torch.zeros(1, 1, self.h_size, device=device), \
+        # return (torch.zeros(1, 1, self.h_size, device=device), \
         #        torch.zeros(1, 1, self.h_size, device=device))
         return torch.zeros(1, 1, self.h_size, device=device)
-
 
 """
 define decoder
 """
 
+class AttnDecoder(nn.Module):
+    def __init__(self, hidden_size, output_size, dropout_p=0.1, max_length=MAX_LENGTH):
+        super(AttnDecoder, self).__init__()
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        self.dropout_p = dropout_p
+        self.max_length = max_length
 
-class Decoder(nn.Module):
-    def __init__(self, hidden_size, output_size):
-        super(Decoder, self).__init__()
-        self.h_size = hidden_size
+        self.embedding = nn.Embedding(self.output_size, self.hidden_size)
+        self.attn = nn.Linear(self.hidden_size * 2, self.max_length)
+        self.attn_combine = nn.Linear(self.hidden_size * 2, self.hidden_size)
+        self.dropout = nn.Dropout(self.dropout_p)
+        self.gru = nn.GRU(self.hidden_size, self.hidden_size)
+        self.out = nn.Linear(self.hidden_size, self.output_size)
 
-        self.embedding = nn.Embedding(output_size, hidden_size)
-        self.lstm = nn.GRU(hidden_size, hidden_size)
-        self.out = nn.Linear(hidden_size, output_size)
-        self.softmax = nn.LogSoftmax(dim=1)
+    def forward(self, input, hidden, encoder_outputs):
+        embedded = self.embedding(input).view(1, 1, -1)
+        embedded = self.dropout(embedded)
 
-    def forward(self, input, hidden):
-        output = self.embedding(input).view(1, 1, -1)
+        attn_weights = F.softmax(
+            self.attn(torch.cat((embedded[0], hidden[0]), 1)), dim=1)
+        attn_applied = torch.bmm(attn_weights.unsqueeze(0),
+                                 encoder_outputs.unsqueeze(0))
+
+        output = torch.cat((embedded[0], attn_applied[0]), 1)
+        output = self.attn_combine(output).unsqueeze(0)
+
         output = F.relu(output)
-        output, hidden = self.lstm(output, hidden)
-        output = self.softmax(self.out(output[0]))
-        return output, hidden
+        output, hidden = self.gru(output, hidden)
+
+        output = F.log_softmax(self.out(output[0]), dim=1)
+        return output, hidden, attn_weights
 
     def initHidden(self):
-        #return (torch.zeros(1, 1, self.h_size, device=device), \
-        #        torch.zeros(1, 1, self.h_size, device=device))
-        return torch.zeros(1, 1, self.h_size, device=device)
+        return torch.zeros(1, 1, self.hidden_size, device=device)
 
 """
 Training
@@ -225,8 +238,7 @@ def p2t(pair):  # pair to tensors
 teacher_forcing_ratio = 1.0
 
 
-def train(src_tensor, tgt_tensor, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion,
-          max_length=MAX_LENGTH):
+def train(src_tensor, tgt_tensor, encoder, decoder, encoder_optimizer, decoder_optimizer, criterion, max_length=MAX_LENGTH):
     encoder_hidden = encoder.initHidden()
 
     encoder_optimizer.zero_grad()
@@ -253,13 +265,15 @@ def train(src_tensor, tgt_tensor, encoder, decoder, encoder_optimizer, decoder_o
     if use_teacher_forcing:
         # Feed the target as the next input
         for di in range(tgt_len):
-            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
+            decoder_output, decoder_hidden,decoder_attention = decoder(decoder_input, decoder_hidden,\
+                                                     encoder_outputs)
             loss += criterion(decoder_output, tgt_tensor[di])
             decoder_input = tgt_tensor[di]
     else:
         # without teach forcing: use its own predictions as the next input
         for di in range(tgt_len):
-            decoder_output, decoder_hidden = decoder(decoder_input, decoder_hidden)
+            decoder_output, decoder_hidden, decoder_attention = decoder(decoder_input, decoder_hidden,\
+                                                     encoder_outputs)
             topv, topi = decoder_output.topk(1)
             decoder_input = topi.squeeze().detach()  # detach from history as input
 
@@ -303,11 +317,11 @@ Full process for training the model is :
 """
 
 
-def trainIters(encoder, decoder, n_iters, print_every=100, learning_rate=0.01,save_every=100):
+def trainIters(encoder, decoder, n_iters, print_every=100, learning_rate=0.01, save_every=100):
     start = time.time()
     plot_losses = []
     print_loss_total = 0  # Reset every print_every
-    #plot_loss_total = 0  # Reset every plot_every
+    # plot_loss_total = 0  # Reset every plot_every
 
     encoder_optimizer = optim.SGD(encoder.parameters(), lr=learning_rate)
     decoder_optimizer = optim.SGD(decoder.parameters(), lr=learning_rate)
@@ -316,8 +330,6 @@ def trainIters(encoder, decoder, n_iters, print_every=100, learning_rate=0.01,sa
     criterion = nn.NLLLoss()
 
     for iter in range(1, n_iters + 1):
-        #if iter % 10 == 0:
-        #    print("processing %d / %d..." % (iter, n_iters))
         training_pair = training_pairs[iter - 1]
         input_tensor = training_pair[0]
         target_tensor = training_pair[1]
@@ -325,32 +337,32 @@ def trainIters(encoder, decoder, n_iters, print_every=100, learning_rate=0.01,sa
         loss = train(input_tensor, target_tensor, encoder,
                      decoder, encoder_optimizer, decoder_optimizer, criterion)
         print_loss_total += loss
-        #plot_loss_total += loss
+        # plot_loss_total += loss
 
         if iter % print_every == 0:
             print_loss_avg = print_loss_total / print_every
             print_loss_total = 0
             print('%s (Now is:%d,Finished %d%%) //average loss:%.4f' % (timeSince(start, iter / n_iters),
                                                                         iter, (iter / n_iters) * 100, print_loss_avg))
-        #plot the loss
-        #if iter % plot_every == 0:
+        # plot the loss
+        # if iter % plot_every == 0:
         #    plot_loss_avg = plot_loss_total / plot_every
         #    plot_losses.append(plot_loss_avg)
         #    plot_loss_total = 0
-        
-        #save the model checkpoint
+
+        # save the model checkpoint
         if iter % 10000 == 0:
-            torch.save(decoder.state_dict(),os.path.join("./model",'decoder-{}.pt'.format(iter+1)))
-            torch.save(encoder.state_dict(),os.path.join("./model",'encoder-{}.pt'.format(iter+1)))
-            print("Save the %dth step checkpoint at ./model"%(iter + 1))
-        
-        #(1) log the scalar values
-        info = {'loss':loss}
+            torch.save(decoder.state_dict(), os.path.join("./model", 'decoder-{}.pt'.format(iter + 1)))
+            torch.save(encoder.state_dict(), os.path.join("./model", 'encoder-{}.pt'.format(iter + 1)))
+            print("Save the %dth step checkpoint at ./model" % (iter + 1))
+
+        # (1) log the scalar values
+        info = {'loss_+att': loss}
         for tag, value in info.items():
             logger.scalar_summary(tag, value, iter)
-        
-        
-    #showPlot(plot_losses) #this is not enable in the server
+
+
+            # showPlot(plot_losses) #this is not enable in the server
 
 
 # plot function
@@ -379,6 +391,6 @@ print("-" * 20 + "starting training" + "-" * 20)
 hidden_size = 256
 
 encoder1 = Encoder(src_lang.n_words, hidden_size).to(device)
-decoder1 = Decoder(hidden_size, tgt_lang.n_words).to(device)
+decoder1 = AttnDecoder(hidden_size, tgt_lang.n_words,dropout_p=0.1).to(device)
 
 trainIters(encoder1, decoder1, 120000, print_every=50)
