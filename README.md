@@ -1,4 +1,4 @@
-# NMT_alphadl: Neural Machine Translation System for Usyd
+# NMT_alphadl: Neural Machine Translation Demos
 
 
 
