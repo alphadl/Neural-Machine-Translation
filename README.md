@@ -11,4 +11,6 @@ an open-source (MIT) neural machine translation system. It is designed to be res
 
 ##News:
 
-(19 Nov. 2019) // Adding basic seq2seq model in this project
+(19 Nov. 2019) // Adding basic seq2seq model
+
+(21 Nov. 2019) // Adding seq2seq + attn model 
