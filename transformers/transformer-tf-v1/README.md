@@ -1,6 +1,7 @@
 # A TensorFlow Implementation of the Transformer: Attention Is All You Need
 
 ## Requirements
+  * Python 2.*
   * NumPy >= 1.11.1
   * TensorFlow >= 1.2 (Probably 1.1 should work, too, though I didn't test it)
   * regex
@@ -21,8 +22,8 @@ I don't intend to replicate the paper exactly. Rather, I aim to implement the ma
   * `prepro.py` creates vocabulary files for the source and the target.
   * `data_load.py` contains functions regarding loading and batching data.
   * `modules.py` has all building blocks for encoder/decoder networks.
-  * `train.py` has the model.
-  * `eval.py` is for evaluation.
+  * `train_tf.py` has the model.
+  * `eval_tf.py` is for evaluation.
 
 ## Training
 * STEP 1. Download [IWSLT 2016 German–English parallel corpus](https://wit3.fbk.eu/download.php?release=2016-01&type=texts&slang=de&tlang=en) and extract it to `corpora/` folder.
