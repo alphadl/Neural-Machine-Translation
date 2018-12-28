@@ -7,7 +7,7 @@ which is an open-source (MIT) neural machine translation system. It is designed 
 
 **There are 10k training data and 0.1k validation&test data in the file: ./data/**
 
-#News:
+*News*
 
 (19 Nov. 2018) // Adding basic seq2seq model (./seq2seq/seq2seq)
 
