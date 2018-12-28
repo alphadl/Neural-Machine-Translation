@@ -5,9 +5,7 @@
 This is a [Pytorch](https://github.com/pytorch/pytorch) version of NMT_usyd,
 an open-source (MIT) neural machine translation system. It is designed to be research friendly to try out new ideas in translation.
 
-**1.Because this version is developed at local PC, so all the code are CPU based.**
-
-**2.There are 10k training data and 0.1k validation&test data in the file: ./data/**
+**There are 10k training data and 0.1k validation&test data in the file: ./data/**
 
 ##News:
 
