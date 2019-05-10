@@ -18,3 +18,5 @@ which is an open-source (MIT) neural machine translation system. It is designed 
 (26 Nov. 2018) // Adding transformer-simple tf-version (./transformer/transformer-tf-v1)
 
 (01 Dev. 2018) // Adding GAN-NMT (./Adversarial-NMT)
+
+(in progress)  // Adding RGSE-NMT
