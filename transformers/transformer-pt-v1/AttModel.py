@@ -6,8 +6,7 @@
 from __future__ import print_function
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import *
+
 import numpy as np
 from modules import *
 from hparams import Hyperparams as hp
@@ -28,14 +27,14 @@ class AttModel(nn.Module):
         self.dec_voc = dec_voc
 
         # encoder
-        self.enc_emb = embedding(self.enc_voc, self.hp.hidden_units, scale=True)
+        self.enc_emb = get_token_embeddings(self.enc_voc, self.hp.hidden_units, scale=True)
 
         if self.hp.sinusoid:
             self.enc_positional_encoding = positional_encoding(num_units=self.hp.hidden_units,
                                                                zeros_pad=False,
                                                                scale=False)
         else:
-            self.enc_positional_encoding = embedding(self.hp.maxlen, self.hp.hidden_units, zeros_pad=False, scale=False)
+            self.enc_positional_encoding = get_token_embeddings(self.hp.maxlen, self.hp.hidden_units, zeros_pad=False, scale=False)
         self.enc_dropout = nn.Dropout(self.hp.dropout_rate)
         for i in range(self.hp.num_blocks):
             self.__setattr__('enc_self_attention_%d' % i, multihead_attention(num_units=self.hp.hidden_units,
@@ -47,13 +46,13 @@ class AttModel(nn.Module):
                                                                      self.hp.hidden_units]))
 
         # decoder
-        self.dec_emb = embedding(self.dec_voc, self.hp.hidden_units, scale=True)
+        self.dec_emb = get_token_embeddings(self.dec_voc, self.hp.hidden_units, scale=True)
         if self.hp.sinusoid:
             self.dec_positional_encoding = positional_encoding(num_units=self.hp.hidden_units,
                                                                zeros_pad=False,
                                                                scale=False)
         else:
-            self.dec_positional_encoding = embedding(self.hp.maxlen, self.hp.hidden_units, zeros_pad=False, scale=False)
+            self.dec_positional_encoding = get_token_embeddings(self.hp.maxlen, self.hp.hidden_units, zeros_pad=False, scale=False)
 
         self.dec_dropout = nn.Dropout(self.hp.dropout_rate)
         for i in range(self.hp.num_blocks):
@@ -76,7 +75,7 @@ class AttModel(nn.Module):
 
     def forward(self, x, y):
         # define decoder inputs
-        self.decoder_inputs = torch.cat([Variable(torch.ones(y[:, :1].size()).cuda() * 2).long(), y[:, :-1]], dim=-1)  # 2:<S>
+        self.decoder_inputs = torch.cat([torch.ones(y[:, :1].size()).cuda().long() * 2, y[:, :-1]], dim=-1)  # 2:<S>
 
         # Encoder
         self.enc = self.enc_emb(x)
@@ -85,7 +84,7 @@ class AttModel(nn.Module):
             self.enc += self.enc_positional_encoding(x)
         else:
             self.enc += self.enc_positional_encoding(
-                Variable(torch.unsqueeze(torch.arange(0, x.size()[1]), 0).repeat(x.size(0), 1).long().cuda()))
+                torch.unsqueeze(torch.arange(0, x.size()[1]), 0).repeat(x.size(0), 1).long().cuda())
         self.enc = self.enc_dropout(self.enc)
         # Blocks
         for i in range(self.hp.num_blocks):
@@ -99,7 +98,7 @@ class AttModel(nn.Module):
             self.dec += self.dec_positional_encoding(self.decoder_inputs)
         else:
             self.dec += self.dec_positional_encoding(
-                Variable(torch.unsqueeze(torch.arange(0, self.decoder_inputs.size()[1]), 0).repeat(self.decoder_inputs.size(0), 1).long().cuda()))
+                torch.unsqueeze(torch.arange(0, self.decoder_inputs.size()[1]), 0).repeat(self.decoder_inputs.size(0), 1).long().cuda())
 
         # Dropout
         self.dec = self.dec_dropout(self.dec)
@@ -121,7 +120,7 @@ class AttModel(nn.Module):
 
         # Loss
         self.y_onehot = torch.zeros(self.logits.size()[0] * self.logits.size()[1], self.dec_voc).cuda()
-        self.y_onehot = Variable(self.y_onehot.scatter_(1, y.view(-1, 1).data, 1))
+        self.y_onehot = self.y_onehot.scatter_(1, y.view(-1, 1).data, 1)
 
         self.y_smoothed = self.label_smoothing(self.y_onehot)
 

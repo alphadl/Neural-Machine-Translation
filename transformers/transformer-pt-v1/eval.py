@@ -1,7 +1,7 @@
 # -*-coding:utf-8-*-
 # Author: alphadl
 # Email: liangding.liam@gmail.com
-# eval_pt.py 26/11/18 20:45
+# eval.py 2019-06-18 23:19
 
 from __future__ import print_function
 import codecs
@@ -13,7 +13,6 @@ from hparams import Hyperparams as hp
 from data_load import load_test_data, load_de_vocab, load_en_vocab
 from nltk.translate.bleu_score import corpus_bleu
 from AttModel import AttModel
-from torch.autograd import Variable
 import torch
 
 
@@ -43,14 +42,14 @@ def eval():
             targets = Targets[i * hp.batch_size: (i + 1) * hp.batch_size]
 
             # Autoregressive inference
-            x_ = Variable(torch.LongTensor(x).cuda())
+            x_ = torch.LongTensor(x).cuda()
             preds_t = torch.LongTensor(np.zeros((hp.batch_size, hp.maxlen), np.int32)).cuda()
-            preds = Variable(preds_t)
+            preds = preds_t
             for j in range(hp.maxlen):
 
                 _, _preds, _ = model(x_, preds)
                 preds_t[:, j] = _preds.data[:, j]
-                preds = Variable(preds_t.long())
+                preds = preds_t.long()
             preds = preds.data.cpu().numpy()
 
             # Write to file

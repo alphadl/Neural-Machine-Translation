@@ -1,22 +1,22 @@
 # -*-coding:utf-8-*-
 # Author: alphadl
 # Email: liangding.liam@gmail.com
-# train_pt.py 26/11/18 20:02
+# train.py 2019-06-18 23:21
 
-from __future__ import print_function
 
 from hparams import Hyperparams as hp
 from data_load import get_batch_indices, load_de_vocab, load_en_vocab
 
-from torch.autograd import Variable
+
 import os
 from AttModel import AttModel
 import torch
 import torch.optim as optim
 from data_load import load_train_data
 import time
-import cPickle as pickle
+import pickle as pickle
 from tensorboardX import SummaryWriter
+from modules import noam_scheme as noam
 
 
 def train():
@@ -53,8 +53,8 @@ def train():
         current_batch = 0
         for index, current_index in get_batch_indices(len(X), hp.batch_size):
             tic = time.time()
-            x_batch = Variable(torch.LongTensor(X[index]).cuda())
-            y_batch = Variable(torch.LongTensor(Y[index]).cuda())
+            x_batch = torch.LongTensor(X[index]).cuda()
+            y_batch = torch.LongTensor(Y[index]).cuda()
             toc = time.time()
             tic_r = time.time()
             torch.cuda.synchronize()
