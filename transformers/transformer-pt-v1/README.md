@@ -1,5 +1,5 @@
 # A Pytorch Implementation of the Transformer: Attention Is All You Need
-Our implementation is largely based on [Tensorflow implementation](https://github.com/Kyubyong/transformer)
+Our implementation is largely based on [Tensorflow implementation](https://github.com/Kyubyong/transformer/tree/85e2dd95c99993c1e6e4193a0493fef5832e4bc1/tf1.2_legacy)
 
 ## Requirements
   * NumPy >= 1.11.1
