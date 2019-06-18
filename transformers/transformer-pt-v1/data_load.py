@@ -3,12 +3,18 @@
 # Email: liangding.liam@gmail.com
 # data_load.py 26/11/18 18:24
 
-from __future__ import print_function
 from hparams import Hyperparams as hp
-import tensorflow as tf
+
 import numpy as np
 import codecs
 import regex
+import random
+import torch
+
+try:
+    xrange  # Python 2
+except NameError:
+    xrange = range  # Python 3
 
 
 def load_de_vocab():
@@ -76,39 +82,13 @@ def load_test_data():
     X, Y, Sources, Targets = create_data(de_sents, en_sents)
     return X, Sources, Targets  # (1064, 150)
 
-#for pt version
+
 def get_batch_indices(total_length, batch_size):
     current_index = 0
-    indexs = [i for i in range(total_length)]
-    import random
+    indexs = [i for i in xrange(total_length)]
     random.shuffle(indexs)
     while 1:
         if current_index + batch_size >= total_length:
             break
         current_index += batch_size
-        yield indexs[current_index:current_index + batch_size], current_index
-
-#for tf version
-def get_batch_data():
-    # Load data
-    X, Y = load_train_data()
-
-    # calc total batch count
-    num_batch = len(X) // hp.batch_size
-
-    # Convert to tensor
-    X = tf.convert_to_tensor(X, tf.int32)
-    Y = tf.convert_to_tensor(Y, tf.int32)
-
-    # Create Queues
-    input_queues = tf.train.slice_input_producer([X, Y])
-
-    # create batch queues
-    x, y = tf.train.shuffle_batch(input_queues,
-                                  num_threads=8,
-                                  batch_size=hp.batch_size,
-                                  capacity=hp.batch_size * 64,
-                                  min_after_dequeue=hp.batch_size * 32,
-                                  allow_smaller_final_batch=False)
-
-    return x, y, num_batch  # (N, T), (N, T), ()
+        yield indexs[current_index: current_index + batch_size], current_index
