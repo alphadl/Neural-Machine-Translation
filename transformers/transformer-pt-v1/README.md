@@ -3,7 +3,7 @@ Our implementation is largely based on [Tensorflow implementation](https://githu
 
 ## Requirements
   * NumPy >= 1.11.1
-  * Pytorch >= 0.4.0
+  * Pytorch >= 1.1.0
   * nltk
   * [tensorboard-pytorch](https://github.com/lanpa/tensorboard-pytorch) (build from source)
 
