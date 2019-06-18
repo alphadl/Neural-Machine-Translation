@@ -15,7 +15,8 @@ class Hyperparams:
     batch_size = 32  # alias = N
     lr = 0.0001  # learning rate. In paper, learning rate is adjusted to the global step.
     logdir = 'logdir'  # log directory
-
+    
+    model_dir = './model/'
     # model
     maxlen = 10  # Maximum number of words in a sentence. alias = T.
     # Feel free to increase this if you are ambitious.
