@@ -9,7 +9,7 @@ import os
 
 import numpy as np
 
-from hyperparams import Hyperparams as hp
+from hparams import Hyperparams as hp
 from data_load import load_test_data, load_de_vocab, load_en_vocab
 from nltk.translate.bleu_score import corpus_bleu
 from AttModel import AttModel

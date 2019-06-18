@@ -5,7 +5,7 @@
 
 from __future__ import print_function
 
-from hyperparams import Hyperparams as hp
+from hparams import Hyperparams as hp
 from data_load import get_batch_indices, load_de_vocab, load_en_vocab
 
 from torch.autograd import Variable

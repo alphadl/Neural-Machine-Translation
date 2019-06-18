@@ -4,7 +4,7 @@
 # data_load.py 26/11/18 18:24
 
 from __future__ import print_function
-from hyperparams import Hyperparams as hp
+from hparams import Hyperparams as hp
 import tensorflow as tf
 import numpy as np
 import codecs
