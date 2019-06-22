@@ -8,6 +8,8 @@ import transformer.Modules
 import transformer.SubLayers
 import transformer.Layers
 import transformer.Models
+import transformer.Translator
+import transformer.Beam
 
 __all__ = [
     transformer.Constant,
@@ -15,5 +17,7 @@ __all__ = [
     transformer.SubLayers,
     transformer.Layers,
     transformer.Models,
+    transformer.Translator,
+    transformer.Beam,
 ]
 
