@@ -6,10 +6,12 @@
 import transformer.Constant
 import transformer.Modules
 import transformer.SubLayers
+import transformer.Layers
 
 __all__ = [
     transformer.Constant,
     transformer.Modules,
     transformer.SubLayers,
+    transformer.Layers,
 ]
 
