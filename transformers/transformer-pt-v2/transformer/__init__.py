@@ -7,11 +7,13 @@ import transformer.Constant
 import transformer.Modules
 import transformer.SubLayers
 import transformer.Layers
+import transformer.Models
 
 __all__ = [
     transformer.Constant,
     transformer.Modules,
     transformer.SubLayers,
     transformer.Layers,
+    transformer.Models,
 ]
 
