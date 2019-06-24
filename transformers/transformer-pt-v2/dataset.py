@@ -38,7 +38,7 @@ def collate_fn(insts):
     return batch_seq, batch_pos
 
 
-class TranslationDateset(torch.utils.data.Dataset):
+class TranslationDataset(torch.utils.data.Dataset):
     def __init__(self,
                  src_word2idx,
                  tgt_word2idx,
