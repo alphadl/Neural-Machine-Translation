@@ -10,6 +10,7 @@ import transformer.Layers
 import transformer.Models
 import transformer.Translator
 import transformer.Beam
+import transformer.Optim
 
 __all__ = [
     transformer.Constant,
@@ -19,5 +20,6 @@ __all__ = [
     transformer.Models,
     transformer.Translator,
     transformer.Beam,
+    transformer.Optim
 ]
 
