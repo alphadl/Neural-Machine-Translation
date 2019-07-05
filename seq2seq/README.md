@@ -1,4 +1,4 @@
-# Recurrent seq2seq model
+# Recurrent seq2seq neural machine translation model
 
 This sub-repository has implemented the basic seq2seq NMT model. 
 
