@@ -1,4 +1,4 @@
-# Transformer 
+# Transformer neural machine translation model
 
 This sub-repository has implemented three [transformer](https://arxiv.org/abs/1706.03762) models. 
 
