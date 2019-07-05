@@ -19,6 +19,4 @@ which is an open-source (MIT) neural machine translation system. It is designed 
 
 (01 Dev. 2018) // Adding GAN-NMT (./Adversarial-NMT)
 
-(in progress)  // Adding RGSE-NMT
-
 (19 Jun. 2019) // Adding transformer model (./transformer/transformer-pt-v2)
