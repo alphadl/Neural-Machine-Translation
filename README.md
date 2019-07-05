@@ -1,9 +1,8 @@
-# NMT_alphadl: Neural Machine Translation Demos
+# Neural Machine Translation 
 
 
 
-This repository implemented various kinds of Neural Machine Translation models with [Pytorch](https://github.com/pytorch/pytorch) and [TensorFlow](https://github.com/tensorflow/tensorflow),
-which is an open-source (MIT) neural machine translation system. It is designed to be research friendly to try out new ideas in translation.
+This repository implemented various kinds of Neural Machine Translation models with [Pytorch](https://github.com/pytorch/pytorch) and [TensorFlow](https://github.com/tensorflow/tensorflow)
 
 **There are 10k training data and 0.1k validation&test data in the file: ./data/**
 
