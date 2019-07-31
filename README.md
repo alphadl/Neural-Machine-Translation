@@ -1,5 +1,12 @@
 # Neural Machine Translation 
 
+![Issue](https://img.shields.io/github/issues/alphadl/Neural-Machine-Translation)
+![Star](https://img.shields.io/github/stars/alphadl/Neural-Machine-Translation)
+![Fork](https://img.shields.io/github/forks/alphadl/Neural-Machine-Translation)
+![Lisence](https://img.shields.io/github/license/alphadl/Neural-Machine-Translation)
+![Twitter](https://img.shields.io/twitter/url/https/github.com%2Falphadl%2FNeural-Machine-Translation
+)
+
 
 
 This repository implemented various kinds of Neural Machine Translation models with [Pytorch](https://github.com/pytorch/pytorch) and [TensorFlow](https://github.com/tensorflow/tensorflow)
